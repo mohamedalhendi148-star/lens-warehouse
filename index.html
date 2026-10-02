@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>مستودع العدسات</title>
+<meta name="theme-color" content="#8C6A3A"><meta name="description" content="نظام مستودع العدسات — الاستيراد والصرف والوارد والأرصدة">
+<link rel="manifest" href="manifest.json"><link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="المستودع"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script src="config.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Tahoma,Arial,sans-serif;background:#fff;color:#2b2b2b;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
+img.logo{width:78%;max-width:300px;height:auto}
+h1{font-size:24px;margin:18px 0 6px}p{margin:6px 0;opacity:.85;line-height:1.7}
+.btn{display:block;width:100%;max-width:340px;margin:12px auto 0;padding:15px;border:0;border-radius:14px;font:bold 17px Tahoma,Arial;cursor:pointer;text-decoration:none;color:#fff;background:linear-gradient(135deg,#B8925A,#8C6A3A)}
+.btn.alt{background:transparent;color:#8C6A3A;border:2px solid #B8925A}
+.box{background:#F7F1E8;border-radius:14px;padding:14px;max-width:360px;margin:18px auto 0;text-align:right;font-size:14px;line-height:1.9}
+.hide{display:none}.spin{width:34px;height:34px;border:4px solid #EADBC4;border-top-color:#8C6A3A;border-radius:50%;animation:s 1s linear infinite;margin:18px auto}
+@keyframes s{to{transform:rotate(360deg)}}
+</style></head><body>
+<img class="logo" src="logo-full.png" alt="شركة بوابة الخليج للصناعة">
+<h1 style="color:#8C6A3A">مستودع العدسات</h1>
+<div id="launch" class="hide"><div class="spin"></div><p>جارٍ فتح التطبيق...</p><a class="btn" id="go2" href="#">فتح التطبيق</a></div>
+<div id="setup">
+  <p>ثبّت التطبيق على جوالك ليظهر بأيقونته مثل أي برنامج.</p>
+  <button class="btn" id="install">📲 تثبيت التطبيق</button>
+  <a class="btn alt" id="go" href="#">فتح التطبيق بدون تثبيت</a>
+  <div class="box" id="howA">على أندرويد (Chrome): إن لم يظهر زر التثبيت اضغط ⋮ أعلى المتصفح ← <b>تثبيت التطبيق</b> أو <b>إضافة إلى الشاشة الرئيسية</b>.</div>
+  <div class="box hide" id="howI">على آيفون (Safari): اضغط زر المشاركة <b>⬆️</b> أسفل الشاشة ← <b>إضافة إلى الشاشة الرئيسية</b> ← إضافة.</div>
+  <div class="box hide" id="cfg" style="background:#FEE2E2;color:#991B1B">⚠️ لم يُضبط رابط التطبيق بعد — المدير يضع رابط ‎/exec‎ في ملف config.js</div>
+</div>
+<script>
+var URL_OK = typeof window.EXEC_URL === 'string' && /^https:\/\/script\.google\.com\/.+\/exec/.test(window.EXEC_URL);
+var standalone = matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+var launch = standalone || /[?&]launch=1/.test(location.search);
+var ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+document.getElementById('go').href = document.getElementById('go2').href = URL_OK ? window.EXEC_URL : '#';
+if (!URL_OK) document.getElementById('cfg').classList.remove('hide');
+if (ios) { document.getElementById('howA').classList.add('hide'); document.getElementById('howI').classList.remove('hide'); }
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function(){});
+if (launch && URL_OK) {
+  document.getElementById('setup').classList.add('hide'); document.getElementById('launch').classList.remove('hide');
+  setTimeout(function(){ location.replace(window.EXEC_URL); }, 350);
+}
+var deferred = null, ib = document.getElementById('install');
+ib.classList.add('hide');
+window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); deferred = e; ib.classList.remove('hide'); });
+ib.onclick = function(){ if (!deferred) return; deferred.prompt(); deferred.userChoice.then(function(){ deferred = null; ib.classList.add('hide'); }); };
+window.addEventListener('appinstalled', function(){ ib.classList.add('hide'); });
+</script>
+</body></html>

@@ -17,6 +17,11 @@ h1{font-size:24px;margin:18px 0 6px}p{margin:6px 0;opacity:.85;line-height:1.7}
 .box{background:#F7F1E8;border-radius:14px;padding:14px;max-width:360px;margin:18px auto 0;text-align:right;font-size:14px;line-height:1.9}
 .hide{display:none}.spin{width:34px;height:34px;border:4px solid #EADBC4;border-top-color:#8C6A3A;border-radius:50%;animation:s 1s linear infinite;margin:18px auto}
 @keyframes s{to{transform:rotate(360deg)}}
+body.framed{padding:0;display:block;background:#fff}
+body.framed>*:not(iframe):not(.hint){display:none!important}
+body.framed iframe{position:fixed;inset:0;width:100%;height:100%;border:0;background:#fff}
+.hint{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:#8C6A3A;color:#fff;padding:10px 16px;border-radius:20px;font-size:13px;text-decoration:none;opacity:0;pointer-events:none;transition:opacity .4s;z-index:9;white-space:nowrap}
+.hint.show{opacity:.95;pointer-events:auto}
 </style></head><body>
 <img class="logo" src="logo-full.png" alt="شركة بوابة الخليج للصناعة">
 <h1 style="color:#8C6A3A">مستودع العدسات</h1>
@@ -25,23 +30,43 @@ h1{font-size:24px;margin:18px 0 6px}p{margin:6px 0;opacity:.85;line-height:1.7}
   <p>ثبّت التطبيق على جوالك ليظهر بأيقونته مثل أي برنامج.</p>
   <button class="btn" id="install">📲 تثبيت التطبيق</button>
   <a class="btn alt" id="go" href="#">فتح التطبيق بدون تثبيت</a>
+  <div class="box">🔑 أول مرة فقط: اضغط «فتح التطبيق بدون تثبيت» ووافق على صلاحيات Google (خيارات متقدّمة ← الانتقال ← سماح)، ثم ثبّت التطبيق.</div>
   <div class="box" id="howA">على أندرويد (Chrome): إن لم يظهر زر التثبيت اضغط ⋮ أعلى المتصفح ← <b>تثبيت التطبيق</b> أو <b>إضافة إلى الشاشة الرئيسية</b>.</div>
   <div class="box hide" id="howI">على آيفون (Safari): اضغط زر المشاركة <b>⬆️</b> أسفل الشاشة ← <b>إضافة إلى الشاشة الرئيسية</b> ← إضافة.</div>
   <div class="box hide" id="cfg" style="background:#FEE2E2;color:#991B1B">⚠️ لم يُضبط رابط التطبيق بعد — المدير يضع رابط ‎/exec‎ في ملف config.js</div>
 </div>
 <script>
 var URL_OK = typeof window.EXEC_URL === 'string' && /^https:\/\/script\.google\.com\/.+\/exec/.test(window.EXEC_URL);
+var Q = new URLSearchParams(location.search);
 var standalone = matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-var launch = standalone || /[?&]launch=1/.test(location.search);
 var ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
-document.getElementById('go').href = document.getElementById('go2').href = URL_OK ? window.EXEC_URL : '#';
+var page = (Q.get('p') || 'home').replace(/[^a-z]/g, '');
+var shell = location.origin + location.pathname;
+function direct(p) { return window.EXEC_URL + '?p=' + (p || 'home'); }
+document.getElementById('go').href = document.getElementById('go2').href = URL_OK ? direct('home') : '#';
 if (!URL_OK) document.getElementById('cfg').classList.remove('hide');
 if (ios) { document.getElementById('howA').classList.add('hide'); document.getElementById('howI').classList.remove('hide'); }
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function(){});
-if (launch && URL_OK) {
+
+// وضع التطبيق: يُفتح النظام داخل إطار ملء الشاشة (بدون شريط Google وبدون شريط العنوان)
+var appMode = URL_OK && (standalone || Q.has('launch') || Q.has('p'));
+if (appMode && ios) {                       // آيفون يمنع تسجيل الدخول داخل الإطار — يُفتح مباشرة
   document.getElementById('setup').classList.add('hide'); document.getElementById('launch').classList.remove('hide');
-  setTimeout(function(){ location.replace(window.EXEC_URL); }, 350);
+  setTimeout(function(){ location.replace(direct(page)); }, 300);
+} else if (appMode) {
+  document.body.className = 'framed';
+  var f = document.createElement('iframe');
+  f.src = window.EXEC_URL + '?p=' + page + '&shell=' + encodeURIComponent(shell);
+  f.allow = 'camera; clipboard-write';
+  f.setAttribute('allowfullscreen', '');
+  document.body.appendChild(f);
+  var hint = document.createElement('a');
+  hint.className = 'hint'; hint.href = direct(page); hint.textContent = 'لا يظهر شيء؟ اضغط هنا للفتح المباشر';
+  document.body.appendChild(hint);
+  setTimeout(function(){ hint.classList.add('show'); }, 7000);
+  f.addEventListener('load', function(){ setTimeout(function(){ hint.classList.remove('show'); }, 1500); });
 }
+
 var deferred = null, ib = document.getElementById('install');
 ib.classList.add('hide');
 window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); deferred = e; ib.classList.remove('hide'); });

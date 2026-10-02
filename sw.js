@@ -1,5 +1,5 @@
 // عامل خدمة بسيط: يحفظ صفحة البداية والأيقونات ليعمل التثبيت ويظهر التطبيق فوراً
-const C = 'app-shell-v2';
+const C = 'app-shell-v3';
 const FILES = ['./', './index.html', './config.js', './manifest.json', './icon-192.png', './icon-512.png', './logo-full.png'];
 self.addEventListener('install', e => { self.skipWaiting(); e.waitUntil(caches.open(C).then(c => c.addAll(FILES)).catch(() => {})); });
 self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
